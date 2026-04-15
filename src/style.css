@@ -1,0 +1,71 @@
+/* ========================================
+   🎨 Element Plus 主題配置
+   ======================================== */
+:root {
+  /* Element Plus 主題色變數 */
+  --el-color-primary: #B33B15;
+  --el-color-primary-light-3: #C65A3A;
+  --el-color-primary-light-5: #D9795F;
+  --el-color-primary-light-7: #EC9884;
+  --el-color-primary-light-8: #F2B39F;
+  --el-color-primary-light-9: #F8CEBA;
+  --el-color-primary-dark-2: #8F2F12;
+
+  /* 基礎顏色 */
+  --el-color-success: #67c23a;
+  --el-color-warning: #e6a23c;
+  --el-color-danger: #f56c6c;
+  --el-color-info: #909399;
+
+  /* 背景色系 */
+  --el-bg-color: #fff1ed;
+  --el-bg-color-page: #fff8f6;
+}
+
+/* ========================================
+   🎯 全局基礎樣式
+   ======================================== */
+html, body {
+  background-color: var(--el-bg-color-page);
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+}
+
+#app {
+  background-color: var(--el-bg-color-page);
+  min-height: 100vh;
+}
+
+/* ========================================
+   🧩 Element Plus 組件覆蓋
+   ======================================== */
+
+/* Dialog 背景色 */
+.el-dialog,
+.el-dialog__body {
+  background-color: var(--el-bg-color-page);
+}
+
+/* 輸入框樣式統一 */
+.el-input__wrapper,
+.el-select__wrapper,
+.el-textarea__inner,
+.el-cascader .el-input__wrapper {
+  background-color: var(--el-bg-color-page);
+}
+
+.el-input__wrapper.is-focus,
+.el-select__wrapper.is-focus {
+  box-shadow: 0 0 0 1px var(--el-color-primary) inset;
+}
+
+/* 側邊欄菜單 hover */
+.sidebar-menu .el-menu-item:hover,
+.sidebar-menu .el-sub-menu__title:hover,
+.el-menu .el-menu-item:hover,
+.el-menu .el-sub-menu__title:hover {
+  background-color: transparent;
+  color: var(--el-color-primary);
+}
