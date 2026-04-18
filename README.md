@@ -112,70 +112,62 @@ npm run build
 
 ## 部署方法
 
-本專案採用 **本地打包 → 上傳伺服器 → Makefile 部署** 的流程。
+本專案採用 **GitHub Actions 自動建置 → 推送到 GHCR → 伺服器拉取運行** 的流程。
 
 ### 快速部署流程
 
-#### 1. 本地打包 (在開發機執行)
+#### 1. 發布新版本
 
+在 GitHub 建立 tag 即會自動觸發 workflow：
 ```bash
-# 執行建置打包腳本
-./build.sh
+# 本地建立 tag 並推送
+git tag v1.0.0
+git push origin v1.0.0
 ```
 
-`build.sh` 會執行以下操作：
-1. 清理舊檔案 (`dist/`, `deploy_temp/`)
-2. 安裝 npm 依賴並執行 `npm run build`
-3. 收集部署必要檔案 (`dist/`, `deploy.sh`, `undeploy.sh`, `Makefile`)
-4. 產生 `frontend-deploy.tar.gz` 部署包
+GitHub Actions 會自動：
+- 建置 Docker image
+- 推送到 GHCR (`ghcr.io/supojen/mall-admin:v1.0.0`)
+- 標記為 `latest`
 
-#### 2. 上傳到伺服器
+#### 2. 伺服器部署
 
-```bash
-# 使用 scp 上傳部署包
-scp frontend-deploy.tar.gz user@server:/path/to/web/
-
-# SSH 登入伺服器
-ssh user@server
-cd /path/to/web/
-
-# 解壓縮
-tar -xzf frontend-deploy.tar.gz
-```
-
-#### 3. 伺服器部署 (在伺服器執行)
+Image 已推送到 GitHub Container Registry，可在伺服器上拉取運行：
 
 ```bash
-# 方式一：使用 Makefile (推薦)
-make deploy
-
-# 方式二：直接執行部署腳本
-./deploy.sh
+# 拉取並運行
+docker pull ghcr.io/supojen/mall-admin:latest
+docker run -d -p 8080:80 --name mall-admin ghcr.io/supojen/mall-admin:latest
 ```
 
-### Makefile 指令說明
+或在 `docker-compose.yml` 中使用：
+```yaml
+services:
+  mall-admin:
+    image: ghcr.io/supojen/mall-admin:latest
+    container_name: mall-admin
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+```
 
-在伺服器上執行以下指令：
+### 本地手動建置（可選）
 
-| 指令 | 說明 |
-|------|------|
-| `make help` | 顯示幫助信息 |
-| `make deploy` | 執行部署腳本，設定 Nginx 與 SSL |
-| `make undeploy` | 移除部署與設定檔 |
-| `make status` | 檢查 Nginx 與網頁檔案狀態 |
-| `make nginx-test` | 測試 Nginx 設定檔語法 |
-| `make nginx-reload` | 重新載入 Nginx 設定 |
-| `make logs` | 查看 Nginx 執行日誌 |
+如需本地建置測試：
+```bash
+# 建置 Docker image
+docker build -t mall-admin:local .
+
+# 本地運行測試
+docker run -d -p 8080:80 --name mall-admin mall-admin:local
+```
 
 ### 部署檔案說明
 
 | 檔案 | 用途 |
 |------|------|
-| `build.sh` | 本地建置與打包 |
-| `deploy.sh` | 伺服器端自動部署 (Nginx 設定、SSL 配置) |
-| `undeploy.sh` | 移除部署並備份 |
-| `Makefile` | 快捷指令集 |
-| `frontend-deploy.tar.gz` | 部署包 (包含 dist/ 與部署腳本) |
+| `Dockerfile` | Docker image 建置定義 |
+| `.github/workflows/docker-build.yml` | GitHub Actions 自動建置 workflow |
 
 ## API 介接
 
