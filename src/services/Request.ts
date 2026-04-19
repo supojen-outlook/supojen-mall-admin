@@ -53,7 +53,7 @@ class ApiError extends Error {
  * @property BASE_URL - API 服務器基礎 URL，所有 API 請求都會基於此地址
  */
 const API_CONFIG = {
-  BASE_URL: import.meta.env.VITE_API_BASE_URL || 'https://localhost:7175'
+  BASE_URL: import.meta.env.VITE_API_BASE_URL || ''
 }
 
 /**
