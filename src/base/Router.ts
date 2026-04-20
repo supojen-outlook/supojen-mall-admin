@@ -135,6 +135,14 @@ router.beforeEach(async (to, _, next)  => {
       console.log(profile)
 
       accountStore.login(profile)
+
+      // 檢查用戶是否有管理員角色權限
+      if (!accountStore.isAdmin) {
+        accountStore.logout()
+        next('/login')
+        return
+      }
+
       next()
     } catch (error) {
       // 如果獲取失敗，重定向到登入頁

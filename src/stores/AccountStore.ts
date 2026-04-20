@@ -28,6 +28,11 @@ export default defineStore('account', {
     // 帳戶是否已登錄
     isLogin: (state): boolean => {
       return state.profile != null 
+    },
+    // 檢查是否為管理員角色 (admin, support, ops)
+    isAdmin: (state): boolean => {
+      const adminRoles = ['admin', 'support', 'ops']
+      return state.profile?.roles?.some(role => adminRoles.includes(role.code)) ?? false
     }
   },
 

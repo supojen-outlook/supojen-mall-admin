@@ -1,3 +1,5 @@
+import type { Role } from "./Role";
+
 export type MembershipLevel = 'bronze' | 'silver' | 'gold' | 'vip';
 
 /**
@@ -14,6 +16,7 @@ export type MembershipLevel = 'bronze' | 'silver' | 'gold' | 'vip';
  * @property email - 電子郵件
  * @property emailVerified - 郵件是否已驗證
  * @property membershipLevel - 會員等級
+ * @property roles - 用戶角色
  * @property note - 備註
  */
 export interface Profile {
@@ -28,5 +31,6 @@ export interface Profile {
   email: string;
   emailVerified: boolean;
   membershipLevel: MembershipLevel;
+  roles: Role[];
   note: string | null;
 }
