@@ -63,7 +63,7 @@
             label="頭像"
             width="80">
             <template #default="{ row }">
-              <el-avatar :size="40" :src="row.avatar">
+              <el-avatar :size="40" :src="row.avatar || '/admin/default_avatar.png'">
                 {{ row.displayName?.charAt(0) || 'U' }}
               </el-avatar>
             </template>

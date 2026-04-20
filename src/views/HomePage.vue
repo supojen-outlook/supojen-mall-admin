@@ -85,7 +85,7 @@
         <div class="user-actions">
           <el-dropdown>
             <div class="user-profile">
-              <el-avatar :size="32" :src="account.profile?.avatar || ''">
+              <el-avatar :size="32" :src="account.profile?.avatar || '/admin/default_avatar.png'">
                 {{ account.profile?.displayName?.charAt(0) || 'A' }}
               </el-avatar>
               <span class="username">{{ account.profile?.displayName || '管理员' }}</span>

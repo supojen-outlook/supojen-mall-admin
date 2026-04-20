@@ -20,7 +20,7 @@
       :value="item.id"
     >
       <div class="option-content">
-        <el-avatar :size="24" :src="item.avatar" class="option-avatar">
+        <el-avatar :size="24" :src="item.avatar || '/admin/default_avatar.png'" class="option-avatar">
           {{ item.displayName?.charAt(0) || 'U' }}
         </el-avatar>
         <span class="option-name">{{ item.displayName }}</span>
