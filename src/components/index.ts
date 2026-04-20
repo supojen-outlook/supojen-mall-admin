@@ -1,5 +1,6 @@
 export * from './CategoryCascader'
 export * from './CategoryForm'
+export * from './RoleSelector'
 export * from './AssetUpload'
 export * from './AttributeKeyForm'
 export * from './AttributeValueForm'

@@ -1,4 +1,5 @@
 import type { MembershipLevel } from "./Profile";
+import type { Role } from "./Role";
 
 /**
  * User model for admin panel
@@ -14,6 +15,7 @@ import type { MembershipLevel } from "./Profile";
  * @property email - 電子郵件
  * @property emailVerified - 郵件是否已驗證
  * @property membershipLevel - 會員等級
+ * @property roles - 用戶角色
  * @property note - 備註
  */
 export interface User {
@@ -28,5 +30,6 @@ export interface User {
   email: string;
   emailVerified: boolean;
   membershipLevel: MembershipLevel;
+  roles: Role[];
   note: string | null;
 }

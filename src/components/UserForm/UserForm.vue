@@ -110,6 +110,13 @@
         </el-select>
       </el-form-item>
 
+      <el-form-item label="角色" prop="roles">
+        <RoleSelector
+          v-model="formData.roles"
+          :disabled="disabled"
+        />
+      </el-form-item>
+
       <el-form-item label="備註" prop="note">
         <el-input
           v-model="formData.note"
@@ -142,6 +149,7 @@ import type { FormInstance, FormRules } from 'element-plus'
 import { createUser, updateUser } from '@/services/User'
 import type { User, MembershipLevel } from '@/model'
 import { AssetUpload } from '@/components/AssetUpload'
+import { RoleSelector } from '@/components/RoleSelector'
 
 interface Props {
   modelValue: boolean
@@ -186,6 +194,7 @@ const formData = ref({
   avatar: '',
   membershipLevel: 'bronze' as MembershipLevel,
   status: 'pending' as string,
+  roles: [] as number[],
   note: ''
 })
 
@@ -239,6 +248,7 @@ const initFormData = () => {
       avatar: props.initialData.avatar || '',
       membershipLevel: props.initialData.membershipLevel || 'bronze',
       status: props.initialData.status || 'pending',
+      roles: props.initialData.roles?.map(r => r.id) || [],
       note: props.initialData.note || ''
     }
   } else {
@@ -252,6 +262,7 @@ const initFormData = () => {
       avatar: '',
       membershipLevel: 'bronze',
       status: 'pending',
+      roles: [],
       note: ''
     }
   }
@@ -287,7 +298,8 @@ const handleSubmit = async () => {
         avatar: formData.value.avatar || undefined,
         membershipLevel: formData.value.membershipLevel,
         status: formData.value.status,
-        note: formData.value.note || null
+        note: formData.value.note || null,
+        roleIds: formData.value.roles
       }
       await createUser(createData)
     } else if (props.initialData) {
@@ -300,7 +312,8 @@ const handleSubmit = async () => {
         avatar: formData.value.avatar || undefined,
         membershipLevel: formData.value.membershipLevel,
         status: formData.value.status,
-        note: formData.value.note || null
+        note: formData.value.note || null,
+        roleIds: formData.value.roles
       }
       await updateUser(updateData)
     }

@@ -119,6 +119,7 @@ import { ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { Expand } from '@element-plus/icons-vue'
 import { useAccountStore } from '@/stores'
+import { signOut } from '@/services'
 
 
 
@@ -150,9 +151,14 @@ const activeMenu = computed(() => {
 })
 
 // 退出登錄
-const logout = () => {
+const logout = async () => {
+  try {
+    await signOut()
+  } catch (error) {
+    console.error('登出 API 失敗:', error)
+  }
   account.logout()
-  router.push({ name: '/login' })
+  router.push('/admin/login')
 }
 
 // 組件掛載時初始化

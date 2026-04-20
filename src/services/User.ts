@@ -31,7 +31,7 @@ export async function getUsers(params?: {
 
 /**
  * 新增用戶
- * 
+ *
  * @param data - 用戶數據
  * @param data.displayName - 顯示名稱，必填
  * @param data.fullName - 用戶全名，必填
@@ -43,6 +43,7 @@ export async function getUsers(params?: {
  * @param data.membershipLevel - 會員等級：bronze、silver、gold、vip
  * @param data.status - 用戶狀態
  * @param data.note - 備註
+ * @param data.roleIds - 角色 ID 陣列
  * @returns Promise<User> - 創建成功的完整用戶信息
  */
 export async function createUser(data: {
@@ -56,13 +57,14 @@ export async function createUser(data: {
   membershipLevel?: MembershipLevel;
   status?: string;
   note?: string | null;
+  roleIds?: number[];
 }): Promise<User> {
   return await request<User>('/api/users', 'POST', data)
 }
 
 /**
  * 更新用戶資料
- * 
+ *
  * @param data - 用戶更新數據
  * @param data.id - 用戶 ID，必填
  * @param data.displayName - 顯示名稱
@@ -74,6 +76,7 @@ export async function createUser(data: {
  * @param data.membershipLevel - 會員等級：bronze、silver、gold、vip
  * @param data.status - 用戶狀態
  * @param data.note - 備註
+ * @param data.roleIds - 角色 ID 陣列
  * @returns Promise<User> - 更新成功的完整用戶信息
  */
 export async function updateUser(data: {
@@ -87,6 +90,7 @@ export async function updateUser(data: {
   membershipLevel?: MembershipLevel;
   status?: string;
   note?: string | null;
+  roleIds?: number[];
 }): Promise<User> {
   return await request<User>('/api/users', 'PUT', data)
 }

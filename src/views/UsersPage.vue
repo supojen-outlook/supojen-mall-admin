@@ -122,6 +122,24 @@
             </template>
           </el-table-column>
           <el-table-column
+            prop="roles"
+            label="角色"
+            width="150">
+            <template #default="{ row }">
+              <div class="roles-cell">
+                <el-tag
+                  v-for="role in row.roles"
+                  :key="role.id"
+                  size="small"
+                  effect="plain"
+                  class="role-tag">
+                  {{ role.name }}
+                </el-tag>
+                <span v-if="!row.roles?.length" class="text-gray">-</span>
+              </div>
+            </template>
+          </el-table-column>
+          <el-table-column
             prop="points"
             label="積分"
             width="80">
@@ -405,5 +423,19 @@ const getGenderLabel = (gender: string | null) => {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.roles-cell {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.role-tag {
+  margin-right: 0;
+}
+
+.text-gray {
+  color: #909399;
 }
 </style>
