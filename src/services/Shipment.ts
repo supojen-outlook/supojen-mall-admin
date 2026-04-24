@@ -21,6 +21,8 @@ export async function getOrderShipment(orderId: number): Promise<Shipment> {
  * @param data.shippingAddress - 寄送地址
  * @param data.recipientName - 收件人姓名
  * @param data.recipientPhone - 收件人電話
+ * @param data.shipDate - 發貨日期，要是 iso 格式
+ * @param data.deliveredDate - 送達日期，要是 iso 格式
  * @returns Promise<Shipment[]> - 更新後的物流單列表
  */
 export async function updateOrderShipment(data: {
@@ -30,6 +32,8 @@ export async function updateOrderShipment(data: {
   shippingAddress: string;
   recipientName: string;
   recipientPhone: string;
+  shipDate?: string;
+  deliveredDate?: string;
 }): Promise<Shipment> {
   return await request<Shipment>('/api/orders/shipment', 'PUT', data)
 }

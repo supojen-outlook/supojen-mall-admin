@@ -48,8 +48,17 @@
       <el-form-item label="出貨日期" prop="shipDate">
         <el-date-picker
           v-model="form.shipDate"
-          type="datetime"
+          type="date"
           placeholder="請選擇出貨日期"
+          style="width: 100%"
+        />
+      </el-form-item>
+
+      <el-form-item label="送達日期" prop="deliveredDate">
+        <el-date-picker
+          v-model="form.deliveredDate"
+          type="date"
+          placeholder="請選擇送達日期"
           style="width: 100%"
         />
       </el-form-item>
@@ -80,6 +89,7 @@ interface FormData {
   recipientPhone: string
   shippingAddress: string
   shipDate: Date | null
+  deliveredDate: Date | null
 }
 
 const props = defineProps<{
@@ -109,7 +119,8 @@ const form = reactive<FormData>({
   recipientName: '',
   recipientPhone: '',
   shippingAddress: '',
-  shipDate: null
+  shipDate: null,
+  deliveredDate: null
 })
 
 const rules: FormRules = {
@@ -129,6 +140,7 @@ const resetForm = () => {
   form.recipientPhone = ''
   form.shippingAddress = ''
   form.shipDate = null
+  form.deliveredDate = null
 }
 
 const handleClose = () => {
@@ -147,6 +159,7 @@ watch(() => props.shipment, (newShipment) => {
     form.recipientPhone = newShipment.recipientPhone
     form.shippingAddress = newShipment.shippingAddress || ''
     form.shipDate = newShipment.shipDate ? new Date(newShipment.shipDate) : null
+    form.deliveredDate = newShipment.deliveredDate ? new Date(newShipment.deliveredDate) : null
   } else {
     resetForm()
   }

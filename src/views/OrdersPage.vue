@@ -57,7 +57,7 @@
                 <div class="detail-section">
                   <h4>訂單項目</h4>
                   <el-table :data="row.orderItems || []" size="small" class="detail-table">
-                    <el-table-column label="商品圖片" width="80">
+                    <el-table-column label="商品圖片" width="100">
                       <template #default="{ row: item }">
                         <el-image 
                           v-if="item.productImageUrl" 
@@ -115,9 +115,9 @@
                 <div class="detail-section">
                   <div class="section-header">
                     <h4>物流信息</h4>
-                    <el-button 
-                      type="primary" 
-                      size="small" 
+                    <el-button
+                      type="primary"
+                      size="small"
                       @click="openShipmentForm(row, row.shipments && row.shipments.length > 0 ? row.shipments[0] : null)"
                     >
                       {{ row.shipments && row.shipments.length > 0 ? '編輯' : '新增' }}
@@ -140,6 +140,79 @@
                     <el-table-column prop="shippingAddress" label="地址" min-width="200" />
                   </el-table>
                   <div v-else class="no-data">暫無物流信息</div>
+                  
+                  <!-- 物流提醒 -->
+                  <div v-if="row.shipments && row.shipments.length > 0" class="shipping-reminders">
+                    <h5>物流提醒</h5>
+                    <div class="reminder-links">
+                      <div class="reminder-item">
+                        <span class="reminder-label">下單網站：</span>
+                        <el-link 
+                          :href="getShipmentOrderUrl(row.shipments[0].method)" 
+                          target="_blank" 
+                          type="primary"
+                        >
+                          {{ getShipmentMethodLabel(row.shipments[0].method) }}下單
+                        </el-link>
+                      </div>
+                      <div class="reminder-item">
+                        <span class="reminder-label">查詢進度：</span>
+                        <el-link 
+                          :href="getShipmentTrackingUrl(row.shipments[0].method)" 
+                          target="_blank" 
+                          type="primary"
+                        >
+                          {{ getShipmentMethodLabel(row.shipments[0].method) }}物流查詢
+                        </el-link>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 揀貨信息 -->
+                <div class="detail-section">
+                  <h4>揀貨信息</h4>
+                  <el-table v-if="row.pickItems && row.pickItems.length > 0" :data="row.pickItems" size="small" class="detail-table">
+                    <el-table-column label="商品圖片" width="100">
+                      <template #default="{ row: pickItem }">
+                        <el-image
+                          v-if="getOrderItemById(row, pickItem.orderItemId)?.productImageUrl"
+                          :src="getOrderItemById(row, pickItem.orderItemId)?.productImageUrl"
+                          :preview-src-list="[getOrderItemById(row, pickItem.orderItemId)?.productImageUrl || '']"
+                          fit="cover"
+                          class="product-image"
+                        />
+                        <div v-else class="no-image">-</div>
+                      </template>
+                    </el-table-column>
+                    <el-table-column label="商品名稱" width="200">
+                      <template #default="{ row: pickItem }">
+                        {{ getOrderItemById(row, pickItem.orderItemId)?.productName || '-' }}
+                      </template>
+                    </el-table-column>
+                    <el-table-column label="SKU ID" width="200">
+                      <template #default="{ row: pickItem }">
+                        <el-tag size="small" type="info">
+                          {{ getOrderItemById(row, pickItem.orderItemId)?.skuId || '-' }}
+                        </el-tag>
+                      </template>
+                    </el-table-column>
+                    <el-table-column label="倉位位置" width="150">
+                      <template #default="{ row: pickItem }">
+                        {{ getLocationName(row, pickItem.locationId) }}
+                      </template>
+                    </el-table-column>
+                    <el-table-column prop="quantityToPick" label="應揀數量" width="120" />
+                    <el-table-column prop="quantityPicked" label="已揀數量" width="120" />
+                    <el-table-column label="狀態" min-width="100">
+                      <template #default="{ row: pickItem }">
+                        <el-tag :type="getPickItemStatusType(pickItem.status)" size="small">
+                          {{ getPickItemStatusLabel(pickItem.status) }}
+                        </el-tag>
+                      </template>
+                    </el-table-column>
+                  </el-table>
+                  <div v-else class="no-data">暫無揀貨信息</div>
                 </div>
 
               </div>
@@ -250,16 +323,19 @@
 import { onMounted, nextTick, ref } from 'vue'
 import { ElMessage, ElIcon } from 'element-plus'
 import { Loading } from '@element-plus/icons-vue'
-import { getOrders, getOrderItems, getOrderPayment, getOrderShipment, updateOrderShipment } from '@/services'
-import type { Order, OrderItem, Payment, Shipment, Pagination } from '@/model'
+import { getOrders, getOrderItems, getOrderPayment, getOrderShipment, updateOrderShipment, getLocations } from '@/services'
+import { getPickItems } from '@/services/PickItem'
+import type { Order, OrderItem, Payment, Shipment, Pagination, PickItem, Location } from '@/model'
 import { usePagination } from '@/composables/usePagination'
-import ShipmentForm from '@/components/ShipmentForm.vue'
+import ShipmentForm from '@/components/ShipmentForm'
 
 // 擴展的訂單類型，包含詳細信息
 interface ExtendedOrder extends Order {
   orderItems?: OrderItem[]
   payments?: Payment[]
   shipments?: Shipment[]
+  pickItems?: PickItem[]
+  locations?: Location[]
   _detailLoaded?: boolean
   _detailLoading?: boolean
 }
@@ -300,20 +376,34 @@ const handleExpandChange = async (row: ExtendedOrder, expandedRows: ExtendedOrde
     row._detailLoading = true
     
     try {
-      const [orderItemsResult, paymentResult, shipment] = await Promise.all([
+      const [orderItemsResult, paymentResult, shipment, pickItemsResult] = await Promise.all([
         getOrderItems(row.id),
         getOrderPayment(row.id),
-        getOrderShipment(row.id)
+        getOrderShipment(row.id),
+        getPickItems({ orderId: row.id })
       ])
-      
+
       // 使用 nextTick 延遲數據更新，等展開動畫完成
       await nextTick()
-      
+
       // 從 Pagination 中提取 list 字段，付款和物流為單個對象轉為數組
       row.orderItems = (orderItemsResult as Pagination<OrderItem>).list || []
       row.payments = paymentResult ? [paymentResult as Payment] : []
       // 物流為單個對象，轉為數組
       row.shipments = shipment ? [shipment as Shipment] : []
+      // 揀貨項目 - 處理可能是 Pagination 或純陣列的情況
+      const pickItems = Array.isArray(pickItemsResult)
+        ? pickItemsResult
+        : (pickItemsResult as Pagination<PickItem>).list || []
+      row.pickItems = pickItems
+
+      // 獲取揀貨項目關聯的倉位信息
+      if (pickItems.length > 0) {
+        const locationIds = [...new Set(pickItems.map(item => item.locationId))]
+        const locationsResult = await getLocations({ ids: locationIds, size: locationIds.length })
+        row.locations = locationsResult.list || []
+      }
+
       row._detailLoaded = true
     } catch (error) {
       ElMessage.error('加載訂單詳情失敗')
@@ -330,6 +420,16 @@ const viewUser = (userId: number) => {
   console.log('查看用戶:', userId)
 }
 
+// 獲取倉位名稱
+const getLocationName = (order: ExtendedOrder, locationId: number): string => {
+  const location = order.locations?.find(loc => loc.id === locationId)
+  return location?.name || `倉位 #${locationId}`
+}
+
+// 根據 orderItemId 獲取訂單項目
+const getOrderItemById = (order: ExtendedOrder, orderItemId: number): OrderItem | undefined => {
+  return order.orderItems?.find(item => item.id === orderItemId)
+}
 
 // 物流表單相關
 const shipmentFormVisible = ref(false)
@@ -352,14 +452,25 @@ const handleShipmentSubmit = async (formData: any) => {
       trackingNumber: formData.trackingNumber,
       shippingAddress: formData.shippingAddress,
       recipientName: formData.recipientName,
-      recipientPhone: formData.recipientPhone
+      recipientPhone: formData.recipientPhone,
+      shipDate: formData.shipDate ? formData.shipDate.toISOString() : undefined,
+      deliveredDate: formData.deliveredDate ? formData.deliveredDate.toISOString() : undefined
     })
     ElMessage.success(currentShipment.value ? '物流信息已更新' : '物流信息已創建')
     
-    // 刷新當前訂單的物流信息
+    // 刷新當前訂單的物流信息和狀態
     if (currentOrderRow.value) {
-      const newShipment = await getOrderShipment(currentOrderRow.value.id)
+      const [newShipment, updatedOrder] = await Promise.all([
+        getOrderShipment(currentOrderRow.value.id),
+        getOrders({ userId: currentOrderRow.value.userId })
+      ])
+      
       currentOrderRow.value.shipments = newShipment ? [newShipment] : []
+      
+      // 更新訂單狀態（後端會根據出貨/送達日期自動更新）
+      if (updatedOrder.list && updatedOrder.list.length > 0) {
+        currentOrderRow.value.status = updatedOrder.list[0].status
+      }
     }
   } catch (error) {
     ElMessage.error('操作失敗，請重試')
@@ -408,6 +519,44 @@ const getItemStatusLabel = (status: string) => {
     cancelled: '已取消'
   }
   return labels[status] || status
+}
+
+// 揀貨項目狀態標籤
+const getPickItemStatusType = (status: string) => {
+  const types: Record<string, string> = {
+    allocated: 'info',
+    picked: 'success',
+    cancelled: 'danger'
+  }
+  return types[status] || 'info'
+}
+
+const getPickItemStatusLabel = (status: string) => {
+  const labels: Record<string, string> = {
+    allocated: '已分配',
+    picked: '已完成',
+    cancelled: '已取消'
+  }
+  return labels[status] || status
+}
+
+// 物流網址 helper functions
+const getShipmentOrderUrl = (method: string | null): string => {
+  const urls: Record<string, string> = {
+    post: 'https://ezpost.post.gov.tw/',
+    seven: 'https://myship.7-11.com.tw/MyShip/Index',
+    family: 'https://fmec.famiport.com.tw/FP_Entrance'
+  }
+  return urls[method || ''] || '#'
+}
+
+const getShipmentTrackingUrl = (method: string | null): string => {
+  const urls: Record<string, string> = {
+    post: 'https://postserv.post.gov.tw/pstmail/main_mail.html',
+    seven: 'https://eservice.7-11.com.tw/E-Tracking/search.aspx',
+    family: 'https://fmec.famiport.com.tw/FP_Entrance/QueryBox'
+  }
+  return urls[method || ''] || '#'
 }
 
 // 付款方式標籤
@@ -600,7 +749,41 @@ const formatDateTime = (dateString: string) => {
   padding: 20px;
   text-align: center;
   color: var(--el-text-color-secondary);
+  background-color: var(--el-fill-color-lighter);
+  border-radius: 4px;
+}
+
+.shipping-reminders {
+  margin-top: 16px;
+  padding: 12px;
+  background-color: var(--el-color-info-light-9);
+  border: 1px solid var(--el-color-info-light-7);
+  border-radius: 4px;
+}
+
+.shipping-reminders h5 {
+  margin: 0 0 8px 0;
   font-size: 14px;
+  color: var(--el-color-info);
+  font-weight: 600;
+}
+
+.reminder-links {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.reminder-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.reminder-label {
+  font-size: 13px;
+  color: var(--el-text-color-regular);
+  min-width: 70px;
 }
 
 .product-image {
