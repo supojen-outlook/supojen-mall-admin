@@ -48,7 +48,7 @@
       <el-form-item label="出貨日期" prop="shipDate">
         <el-date-picker
           v-model="form.shipDate"
-          type="date"
+          type="datetime"
           placeholder="請選擇出貨日期"
           style="width: 100%"
         />
@@ -57,7 +57,7 @@
       <el-form-item label="送達日期" prop="deliveredDate">
         <el-date-picker
           v-model="form.deliveredDate"
-          type="date"
+          type="datetime"
           placeholder="請選擇送達日期"
           style="width: 100%"
         />
